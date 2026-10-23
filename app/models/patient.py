@@ -1,5 +1,5 @@
-from sqlalchemy import SmallInt, String, DateTime
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import SmallInteger, String, DateTime
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 from app.core.db.databases import Base
 from app.models.enum import GenderEnum
@@ -9,7 +9,7 @@ class Patient(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(30), nullable=False, comment="환자 성명")
-    age: Mapped[int] = mapped_column(SmallInt, nullable=False, comment="smallint")
+    age: Mapped[int] = mapped_column(SmallInteger, nullable=False, comment="smallinteger")
 
     # 공통 Enum 적용
     gender: Mapped[GenderEnum] = mapped_column(nullable=False, comment="환자 성별")
@@ -28,3 +28,4 @@ class Patient(Base):
         onupdate=func.current_timestamp(),
         comment="환자 정보 수정 일시"
     )
+    medical_records = relationship("MedicalRecord", back_populates="patient")

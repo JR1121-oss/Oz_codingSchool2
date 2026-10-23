@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, String, Text
+from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 from app.core.db.databases import Base
 
@@ -9,7 +9,7 @@ class MedicalRecord(Base):
 
   id = Column(BigInteger, primary_key=True, index=True, autoincrement=True)
   patient_id = Column(
-      BigInteger, ForeignKey("patients.id", ondelete="CASCADE"), nullable=False
+      Integer, ForeignKey("patients.id", ondelete="CASCADE"), nullable=False
   )
   chart_number = Column(String(50), nullable=False)
   symptoms = Column(Text, nullable=False)
