@@ -4,6 +4,17 @@
 
 ---
 
+### Summary Table
+
+| No. | Feature | HTTP Method | Endpoint | Description |
+| :--- | :--- | :---: | :--- | :--- |
+| 1 | Get My Profile | `GET` | `/api/v1/users/me` | Retrieves user profile (`REQ-USER-006`) |
+| 2 | Update My Profile | `PATCH` | `/api/v1/users/me` | Updates department & phone (`REQ-USER-007`) |
+| 3 | Change Password | `PATCH` | `/api/v1/users/me/password` | Changes password (`REQ-USER-008`) |
+| 4 | Delete Account | `DELETE` | `/api/v1/users/me` | Withdraws account (`REQ-USER-009`) |
+
+---
+
 ### 1. Get My Profile (`REQ-USER-006`)
 * **HTTP Method**: `GET`
 * **Endpoint**: `/api/v1/users/me`
