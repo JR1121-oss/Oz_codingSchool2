@@ -54,3 +54,10 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
     expires_in: int = 1800
     user: LoginUserData
+
+# 사용자 정보 수정 요청(PATCH /me) 시 클라이언트가 보낼 수정 데이터 규격 클래스 추가
+class UserUpdateReq(BaseModel):
+    """현재 로그인된 사용자 정보 수정 요청 본문 (REQ-USER-004)"""
+    name: str | None = Field(None, min_length=2, max_length=20)
+    password: str | None = Field(None, min_length=8, max_length=64)
+    phone: str | None = Field(None, pattern=r"^\d{11}$")
