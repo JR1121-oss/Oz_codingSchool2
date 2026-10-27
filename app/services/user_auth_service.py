@@ -23,7 +23,7 @@ async def register_user(db: AsyncSession, req: SignupRequest) -> User:
         )
 
     # 2. 전화번호 중복 확인
-    if await repo.find_user_by_phone(db, req.phone):
+    if await repo.find_user_by_phone(db, req.phone_number):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="이미 등록된 전화번호입니다.",
@@ -37,7 +37,7 @@ async def register_user(db: AsyncSession, req: SignupRequest) -> User:
         name=req.name,
         department=req.department,
         gender=req.gender,
-        phone_number=req.phone,
+        phone_number=req.phone_number,
     )
 
 
