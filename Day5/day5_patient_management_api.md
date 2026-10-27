@@ -4,49 +4,54 @@
 
 ---
 
-## 0. 공통 사항
+## 0. 프로젝트 구조
+
+```text
 app/
+├── main.py                         # 진입점 (라우터 등록, static/media 마운트, catch-all)
 │
-├── ⚙️ [공통 모듈] 전역 인프라 및 보안/의존성 설정
-│   ├── core/
-│   │   ├── database.py             # DB 연결 설정 (Engine, SessionLocal, get_db)
-│   │   ├── deps.py                 # 인증 및 권한 검증 의존성 (get_current_user, get_current_staff)
-│   │   └── security.py             # JWT 토큰 생성/검증 및 비밀번호 암호화 유틸
-│   │
-│   └── models/                     # SQLAlchemy ORM 데이터베이스 모델
-│       ├── enum.py                 # UserRole(STAFF/ADMIN), Gender, Department 등 공통 Enum
-│       ├── user.py                 # 사용자(의료진/관리자) 테이블 모델
-│       ├── patient.py              # 환자 정보 테이블 모델
-│       └── medical_record.py       # 진료기록 및 X-Ray 이미지 경로 테이블 모델
+├── core/                           # [공통] 전역 설정
+│   ├── config.py                   # .env 기반 환경변수 (DB 접속 정보)
+│   ├── db/
+│   │   └── databases.py            # 비동기 엔진, 세션, Base, async_get_db
+│   ├── deps.py                     # get_current_user 등 인증 의존성
+│   └── security.py                 # JWT 발급/검증, 비밀번호 해싱, refresh 쿠키
 │
-└── 📦 [레이어별 분리] 웹 진입점 및 계층별 비즈니스 로직
-    │
-    ├── 🚦 routers/                 # [Auth & User Domain] 계정/인증 관리 라우터 (엔드포인트 분리)
-    │   ├── auth.py                 # 로그인, 토큰 재발급, 로그아웃 API (`/api/v1/auth`)
-    │   ├── admin.py                # 관리자 전용 회원 승인 및 권한 변경 API (`/api/v1/admin`)
-    │   └── users.py                # 사용자 내 정보 조회 및 프로필 수정 API (`/api/v1/users`)
-    │
-    ├── 🌐 apis/                    # [Medical Domain] 핵심 진료/환자 비즈니스 API
-    │   └── v1/
-    │       ├── patient_api.py      # 환자 등록/조회/수정/삭제 API (`REQ-PTNT-001~005`)
-    │       └── medical_record_api.py # 진료기록 등록 및 X-Ray 파일 처리 API (`REQ-MDR-001~005`)
-    │
-    ├── 🧠 services/                # [Business Logic] 순수 비즈니스 로직 및 예외 처리
-    │   ├── user_service.py         # 회원가입, 비밀번호 검증, 권한 변경 로직
-    │   ├── patient_service.py      # 환자 정보 검증 및 연쇄 삭제(CASCADE) 비즈니스 로직
-    │   └── medical_record_service.py # X-Ray 파일 저장 유틸 호출 및 증상 100자 축약 로직
-    │
-    ├── 🗄️ repositories/            # [Data Access] SQLAlchemy 전용 DB CRUD 쿼리 계층
-    │   ├── user_repository.py      # 유저 조회, Role 업데이트 DB 쿼리
-    │   ├── patient_repository.py   # 환자 목록 검색/필터링 및 등록/삭제 쿼리
-    │   └── medical_record_repository.py # 진료기록 저장 및 환자별 기록 조회 쿼리
-    │
-    └── 📋 schemas/                 # [DTO] Pydantic 요청/응답 데이터 유효성 검증
-        ├── user.py                 # 로그인/회원가입 요청 및 유저 응답 규격
-        ├── patient.py              # 환자 정보 등록/수정/조회 Pydantic 스키마
-        └── medical_record.py       # 진료기록 및 파일 업로드 Form/JSON 스키마
+├── models/                         # [공통] SQLAlchemy 모델
+│   ├── enum.py                     # GenderEnum, DepartmentEnum, RoleEnum
+│   ├── user.py
+│   ├── patient.py
+│   ├── medical_record.py
+│   ├── JR_xray_image.py               
+│   └── JR_ai_analysis_result.py    
 │
-└── 🚀 main.py                      # 중앙 진입점 (Static/Media 마운트, 라우터 통합, Catch-all)
+├── routers/                        # [User 도메인] 계정/인증 API
+│   ├── auth.py                     # 회원가입, 로그인, 로그아웃
+│   ├── admin.py                    # 회원 목록 조회, 권한 변경 (ADMIN 전용)
+│   └── users.py                    # 내 정보 조회/수정
+│
+├── apis/
+│   └── v1/                         # [Patient 도메인] 환자 API
+│       ├── patient_apis.py         # 환자 등록/목록 조회 (REQ-PTNT-001, 002)
+│       └── patient_detail_apis.py  # 환자 상세 조회/수정 (REQ-PTNT-003, 004)
+│
+├── services/
+│   ├── user_auth_service.py
+│   ├── user_admin_service.py
+│   └── user_me_service.py
+│
+├── repositories/
+│   └── user_auth_repository.py     # ※ 실제 파일 목록 확인
+│
+└── schemas/
+    ├── user.py
+    └── patient.py
+```
+
+### 4일차 대비 변경 사항
+- 유저 API를 `apis/user_*_apis.py` → `routers/`(auth, admin, users)로 분리
+- 환자 도메인 추가: `apis/v1/`, `schemas/patient.py`, `models/patient.py` 등
+- DB 연결 모듈 경로를 실제 템플릿에 맞춰 `core/db/databases.py`로 정정
 
 ### 0-1. 기본 규칙
 - **Base URL**: `/api/v1`
