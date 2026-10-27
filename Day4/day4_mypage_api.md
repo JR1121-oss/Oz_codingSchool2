@@ -31,7 +31,7 @@
     "phone_number": "010-1234-5678",
     "role": "Staff"
   }
-  2. Update My Profile (REQ-USER-007)
+2. Update My Profile (REQ-USER-007)
 HTTP Method: PATCH
 
 Endpoint: /api/v1/users/me
