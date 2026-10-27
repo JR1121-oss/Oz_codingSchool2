@@ -1,149 +1,106 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+## Part D: Mypage API (`/api/v1/users/me`)
 
-# 프로젝트 내 파일 경로 확인 (예: app.core.database 또는 app.core.db.databases)
-from app.core.database import get_db
-from app.core.deps import get_current_user
-# 프로젝트 내 보안 유틸 경로 확인 (비밀번호 검증/해싱)
-from app.core.security import get_password_hash, verify_password
-from app.models.user import User
-from app.schemas.user import PasswordChangeRequest, UserBase, UserProfileUpdate
+> **공통 안내 (Common Note)**: 마이페이지의 모든 API는 로그인이 필요합니다. 따라서 요청 헤더에 `Authorization: Bearer {access_token}`이 반드시 포함되어야 합니다.
 
-router = APIRouter(prefix="/api/v1/users/me", tags=["Mypage"])
+---
 
+### 요약 표 (Summary Table)
 
-# 1. 마이페이지 조회 (REQ-USER-006)
-@router.get("", response_model=UserBase)
-def get_my_profile(current_user: User = Depends(get_current_user)):
-    return current_user
+| 번호 (No.) | 기능 (Feature) | HTTP 메서드 | 엔드포인트 (Endpoint) | 설명 (Description) |
+| :--- | :--- | :---: | :--- | :--- |
+| 1 | 내 정보 조회 | `GET` | `/api/v1/users/me` | 사용자 프로필 정보 조회 (`REQ-USER-006`) |
+| 2 | 내 정보 수정 | `PATCH` | `/api/v1/users/me` | 부서 및 전화번호 Partial 수정 (`REQ-USER-007`) |
+| 3 | 비밀번호 변경 | `PATCH` | `/api/v1/users/me/password` | 기존 비밀번호 확인 후 새 비밀번호로 변경 (`REQ-USER-008`) |
+| 4 | 회원 탈퇴 | `DELETE` | `/api/v1/users/me` | Database에서 관련 정보 즉시 삭제 (`REQ-USER-009`) |
 
+---
 
-# 2. 회원 정보 수정 (REQ-USER-007: 부서, 휴대폰번호 Partial 수정)
-@router.patch("")
-def update_my_profile(
-    payload: UserProfileUpdate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    if payload.department is not None:
-        current_user.department = payload.department
-    if payload.phone_number is not None:
-        current_user.phone_number = payload.phone_number
+### 1. 내 정보 조회 (Get My Profile - `REQ-USER-006`)
+* **HTTP Method**: `GET`
+* **Endpoint**: `/api/v1/users/me`
+* **설명**: 현재 로그인된 사용자의 상세 프로필 정보를 조회합니다.
+* **접근 권한 (Access Role)**: 인증된 모든 유저 (Pending, Staff, Admin)
+* **Request Body**: 없음 (None)
+* **Response (200 OK)**:
+```json
+{
+  "email": "user@example.com",
+  "name": "Hong Gildong",
+  "department": "Medical",
+  "gender": "M",
+  "phone_number": "010-1234-5678",
+  "role": "Staff"
+}
+```
 
-    db.add(current_user)
-    db.commit()
-    db.refresh(current_user)
+---
 
-    return {
-        "message": "Profile updated successfully.",
-        "data": UserBase.model_validate(current_user),
-    }
+### 2. 내 정보 수정 (Update My Profile - `REQ-USER-007`)
+* **HTTP Method**: `PATCH`
+* **Endpoint**: `/api/v1/users/me`
+* **설명**: 현재 로그인된 사용자의 정보 중 부서(Department)와 전화번호(Phone Number)를 부분 수정합니다.
+* **접근 권한 (Access Role)**: 인증된 유저
+* **Request Body (JSON)**:
+```json
+{
+  "department": "Research",
+  "phone_number": "010-9876-5432"
+}
+```
+* **Response (200 OK)**:
+```json
+{
+  "message": "Profile updated successfully.",
+  "data": {
+    "email": "user@example.com",
+    "name": "Hong Gildong",
+    "department": "Research",
+    "gender": "M",
+    "phone_number": "010-9876-5432",
+    "role": "Staff"
+  }
+}
+```
 
+---
 
-# 3. 비밀번호 변경 (REQ-USER-008: 기존 비밀번호 검증 후 새 비밀번호 적용)
-@router.patch("/password")
-def change_password(
-    payload: PasswordChangeRequest,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    # 기존 비밀번호 일치 검증
-    if not verify_password(payload.current_password, current_user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Current password does not match.",
-        )
+### 3. 비밀번호 변경 (Change Password - `REQ-USER-008`)
+* **HTTP Method**: `PATCH`
+* **Endpoint**: `/api/v1/users/me/password`
+* **설명**: 현재 비밀번호를 검증하고 일치할 경우 새로운 비밀번호로 변경합니다.
+* **접근 권한 (Access Role)**: 인증된 유저
+* **Request Body (JSON)**:
+```json
+{
+  "current_password": "old_password123!",
+  "new_password": "new_password456!"
+}
+```
+* **Response**:
+  * **200 OK (성공 시)**:
+```json
+{
+  "message": "Password changed successfully."
+}
+```
+  * **400 Bad Request (현재 비밀번호 불일치 시)**:
+```json
+{
+  "detail": "Current password does not match."
+}
+```
 
-    # 새로운 비밀번호 해싱 후 업데이트
-    current_user.hashed_password = get_password_hash(payload.new_password)
-    db.add(current_user)
-    db.commit()
+---
 
-    return {"message": "Password changed successfully."}
-
-
-# 4. 회원 탈퇴 (REQ-USER-009: Database에서 관련 정보 즉시 삭제)
-@router.delete("")
-def delete_account(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    # 요구사항에 명시된 'DB 즉시 삭제' 처리
-    db.delete(current_user)
-    db.commit()
-
-    return {"message": "Account successfully deleted."}from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-
-# 프로젝트 내 파일 경로 확인 (예: app.core.database 또는 app.core.db.databases)
-from app.core.database import get_db
-from app.core.deps import get_current_user
-# 프로젝트 내 보안 유틸 경로 확인 (비밀번호 검증/해싱)
-from app.core.security import get_password_hash, verify_password
-from app.models.user import User
-from app.schemas.user import PasswordChangeRequest, UserBase, UserProfileUpdate
-
-router = APIRouter(prefix="/api/v1/users/me", tags=["Mypage"])
-
-
-# 1. 마이페이지 조회 (REQ-USER-006)
-@router.get("", response_model=UserBase)
-def get_my_profile(current_user: User = Depends(get_current_user)):
-    return current_user
-
-
-# 2. 회원 정보 수정 (REQ-USER-007: 부서, 휴대폰번호 Partial 수정)
-@router.patch("")
-def update_my_profile(
-    payload: UserProfileUpdate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    if payload.department is not None:
-        current_user.department = payload.department
-    if payload.phone_number is not None:
-        current_user.phone_number = payload.phone_number
-
-    db.add(current_user)
-    db.commit()
-    db.refresh(current_user)
-
-    return {
-        "message": "Profile updated successfully.",
-        "data": UserBase.model_validate(current_user),
-    }
-
-
-# 3. 비밀번호 변경 (REQ-USER-008: 기존 비밀번호 검증 후 새 비밀번호 적용)
-@router.patch("/password")
-def change_password(
-    payload: PasswordChangeRequest,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    # 기존 비밀번호 일치 검증
-    if not verify_password(payload.current_password, current_user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Current password does not match.",
-        )
-
-    # 새로운 비밀번호 해싱 후 업데이트
-    current_user.hashed_password = get_password_hash(payload.new_password)
-    db.add(current_user)
-    db.commit()
-
-    return {"message": "Password changed successfully."}
-
-
-# 4. 회원 탈퇴 (REQ-USER-009: Database에서 관련 정보 즉시 삭제)
-@router.delete("")
-def delete_account(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    # 요구사항에 명시된 'DB 즉시 삭제' 처리
-    db.delete(current_user)
-    db.commit()
-
-    return {"message": "Account successfully deleted."}
+### 4. 회원 탈퇴 (Delete Account - `REQ-USER-009`)
+* **HTTP Method**: `DELETE`
+* **Endpoint**: `/api/v1/users/me`
+* **설명**: 회원탈퇴 시 Database에서 회원과 관련된 정보는 모두 즉시 삭제합니다.
+* **접근 권한 (Access Role)**: 인증된 유저
+* **Request Body**: 없음 (None)
+* **Response (200 OK)**:
+```json
+{
+  "message": "Account successfully deleted."
+}
+```
