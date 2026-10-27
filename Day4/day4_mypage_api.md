@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+# 1. 팀 프로젝트 내 실제 경로 확인 필요 (app.core.db.databases 또는 app.core.database)
 from app.core.database import get_db
 from app.core.deps import get_current_user
-# 프로젝트 보안 유틸 함수 임포트 (경로가 다를 경우 맞춰서 조정해주세요)
+# 2. 보안 유틸 경로 확인 필요
 from app.core.security import get_password_hash, verify_password
 from app.models.user import User
 from app.schemas.user import PasswordChangeRequest, UserBase, UserProfileUpdate
@@ -36,7 +37,7 @@ def update_my_profile(
 
     return {
         "message": "Profile updated successfully.",
-        "data": current_user,
+        "data": UserBase.model_validate(current_user),
     }
 
 
@@ -68,13 +69,9 @@ def delete_account(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    # 소프트 삭제(Soft Delete: 비활성화) 처리
+    # 계정 비활성화 (소프트 삭제)
     current_user.is_active = False
     db.add(current_user)
-    
-    # 만약 DB에서 완전히 영구 삭제(Hard Delete)를 요구한다면 아래 주석을 해제하고 위 두 줄을 지우면 됩니다.
-    # db.delete(current_user)
-
     db.commit()
 
     return {"message": "Account successfully deleted."}
