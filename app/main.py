@@ -1,12 +1,17 @@
+# FastAPI 프로젝트의 '중앙 통제실'이자 '진입점(Entry Point)' 역할을 하는 파일
 import os
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from starlette.staticfiles import StaticFiles
 from starlette.responses import FileResponse
 
-from fastapi import FastAPI
+# 1. Auth & User 라우터 (routers/ 폴더 내 파일들)
 from app.routers import auth, admin, users
+
+# 2. Patients v1 API 라우터 (apis/v1/ 폴더 내 파일들)
+from app.apis.v1 import patient_apis
+from app.apis.v1.patient_detail_apis import router as patient_detail_router
 
 app = FastAPI(title="Chest X-Ray AI User Service")
 
@@ -14,6 +19,7 @@ app.include_router(auth.router)
 app.include_router(admin.router)
 app.include_router(users.router)
 
+# app/main.py 위치 기준 parent.parent는 프로젝트 최상위 루트 디렉토리입니다.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 만약 static, media 폴더가 존재하지 않으면 생성
