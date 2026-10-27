@@ -74,7 +74,7 @@ app/
 #### 개요
 - **기능**: 로그인된 사내 인원이 등록된 환자 정보 목록을 조회합니다. 이름 검색 및 성별, 나이범위 필터링 기능을 지원합니다.
 - **HTTP Method**: `GET`
-- **Endpoint**: `/api/v1/patients`
+- **Endpoint**: `/apis/v1/patients`
 - **인증 필요 여부**: Y (`Bearer Token`)
 - **권한**: `STAFF`, `ADMIN`
 
