@@ -1,16 +1,17 @@
 import jwt
 from fastapi import HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import create_access_token, decode_token
 from app.repositories.user_auth_repository import UserAuthRepository
 from app.schemas.user import TokenResponse
 
+
 class UserAuthService:
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession):
         self.user_repo = UserAuthRepository(db)
 
-    def refresh_access_token(self, refresh_token: str | None) -> TokenResponse:
+    async def refresh_access_token(self, refresh_token: str | None) -> TokenResponse:
         """리프레시 토큰을 검증하고 새로운 액세스 토큰을 발급합니다."""
         invalid_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -21,13 +22,13 @@ class UserAuthService:
             raise invalid_exception
 
         try:
-            # 토큰 디코딩 및 'refresh' 타입 검증
+            # 토큰 디코딩 및 'refresh' 타입 검증 (DB 접근이 없어서 동기 그대로)
             user_id = decode_token(refresh_token, expected_type="refresh")
         except (jwt.PyJWTError, ValueError, KeyError):
             raise invalid_exception
 
-        # DB에서 유저 조회
-        user = self.user_repo.get_by_id(user_id)
+        # DB에서 유저 조회: 비동기라서 await
+        user = await self.user_repo.get_by_id(user_id)
         if user is None:
             raise invalid_exception
 
@@ -35,7 +36,7 @@ class UserAuthService:
         if not user.is_active:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="비활성화된 사용자입니다."
+                detail="비활성화된 사용자입니다.",
             )
 
         # 새로운 액세스 토큰 반환 (리프레시 토큰은 재발급하지 않음)
