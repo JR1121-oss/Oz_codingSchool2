@@ -7,7 +7,7 @@ from datetime import datetime
 from app.core.db.databases import async_get_db
 from app.schemas.patient import PatientUpdateRequest, PatientResponse
 
-router = APIRouter(prefix="/patients", tags=["Patients"])
+router = APIRouter()
 
 
 # REQ-PATIENT-002: 환자 상세 정보 조회 API
