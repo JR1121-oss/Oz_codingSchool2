@@ -1,4 +1,4 @@
-# app/apis/v1/user_admin_repository.py
+# app/repositories/user_admin_repository.py
 from collections.abc import Sequence
 from typing import Optional
 

@@ -8,8 +8,8 @@ from app.core.db.databases import async_get_db
 from app.core.deps import get_current_admin
 from app.models.enum import DepartmentEnum as Department
 from app.models.user import User
-from app.apis.v1.user import UserAdminResponse, RoleUpdateRequest, RoleUpdateResponse
-from app.apis.v1 import user_admin_service as service
+from app.schemas.user import UserAdminResponse, RoleUpdateRequest, RoleUpdateResponse
+from app.services import user_admin_service as service
 
 router = APIRouter()
 

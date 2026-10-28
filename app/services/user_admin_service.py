@@ -1,4 +1,4 @@
-# app/apis/v1/user_admin_service.py
+# app/services/user_admin_service.py
 from collections.abc import Sequence
 from typing import Optional
 
@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.enum import DepartmentEnum, RoleEnum
 from app.models.user import User
-from app.apis.v1 import user_admin_repository as repo
+from app.repositories import user_admin_repository as repo
 
 
 async def get_users(
