@@ -8,7 +8,7 @@ from fastapi import APIRouter, File, Form, UploadFile
 
 from app.core.db.databases import IMAGE_DIR, get_next_record_id, records_db
 
-router = APIRouter(prefix="/patients", tags=["Medical Records"])
+router = APIRouter()
 
 
 def _save_upload(file_obj, path: str) -> None:
