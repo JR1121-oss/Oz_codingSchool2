@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
 import re
 
-router = APIRouter(prefix="/practice_api", tags=["Part D: Mypage API"])
+router = APIRouter()
 
 # 연습용 회원 데이터 리스트
 user_list = [
