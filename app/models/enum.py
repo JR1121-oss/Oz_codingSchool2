@@ -1,16 +1,16 @@
 import enum
 
 class GenderEnum(str, enum.Enum):
-    M = "M"
-    F = "F"
+    M = "male"
+    F = "female"
 
 class RoleEnum(str, enum.Enum):
-    PENDING = "PENDING"
-    STAFF = "STAFF"
-    ADMIN = "ADMIN"
+    PENDING = "pending"
+    STAFF = "staff"
+    ADMIN = "admin"
 
 class DepartmentEnum(str, enum.Enum):
-    MEDICAL = "MEDICAL"
-    DEV = "DEV"
-    RESEARCH = "RESEARCH"
+    MEDICAL = "medical team"
+    DEV = "developer"
+    RESEARCH = "researcher"
     
