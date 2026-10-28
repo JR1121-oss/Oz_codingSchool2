@@ -1,5 +1,6 @@
 ## Part D: Mypage API (`/api/v1/users/me`)
 
+> **File Location**: `app/apis/v1/practice_apis_jk.py`  
 > **Common Note**: All Mypage APIs require authentication. Therefore, the `Authorization: Bearer {access_token}` header must be included in the request.
 
 ---
@@ -16,12 +17,12 @@
 ---
 
 ### 1. Get My Profile (`REQ-USER-006`)
-* **HTTP Method**: `GET`
-* **Endpoint**: `/api/v1/users/me`
-* **Description**: Retrieves the detailed profile information of the currently authenticated user.
-* **Access Role**: Authenticated User (Pending, Staff, Admin)
-* **Request Body**: None
-* **Response (200 OK)**:
+- **HTTP Method**: `GET`
+- **Endpoint**: `/api/v1/users/me`
+- **Description**: Retrieves the detailed profile information of the currently authenticated user.
+- **Access Role**: Authenticated User (Pending, Staff, Admin)
+- **Request Body**: None
+- **Response (200 OK)**:
   ```json
   {
     "email": "user@example.com",
@@ -31,7 +32,8 @@
     "phone_number": "010-1234-5678",
     "role": "Staff"
   }
-2. Update My Profile (REQ-USER-007)
+  ```
+### 2. Update My Profile (REQ-USER-007)
 HTTP Method: PATCH
 
 Endpoint: /api/v1/users/me
@@ -41,15 +43,11 @@ Description: Partially updates the profile information of the currently authenti
 Access Role: Authenticated User
 
 Request Body (JSON):
-
-JSON
 {
   "department": "Research",
   "phone_number": "010-9876-5432"
 }
 Response (200 OK):
-
-JSON
 {
   "message": "Profile updated successfully.",
   "data": {
@@ -61,7 +59,7 @@ JSON
     "role": "Staff"
   }
 }
-3. Change Password (REQ-USER-008)
+### 3. Change Password (REQ-USER-008)
 HTTP Method: PATCH
 
 Endpoint: /api/v1/users/me/password
@@ -71,8 +69,6 @@ Description: Validates the current password and updates it to a new password.
 Access Role: Authenticated User
 
 Request Body (JSON):
-
-JSON
 {
   "current_password": "old_password123!",
   "new_password": "new_password456!"
@@ -80,18 +76,14 @@ JSON
 Response:
 
 200 OK:
-
-JSON
 {
   "message": "Password changed successfully."
 }
 400 Bad Request (When current password does not match):
-
-JSON
 {
   "detail": "Current password does not match."
 }
-4. Delete Account / Withdraw (REQ-USER-009)
+### 4. Delete Account / Withdraw (REQ-USER-009)
 HTTP Method: DELETE
 
 Endpoint: /api/v1/users/me
@@ -103,8 +95,6 @@ Access Role: Authenticated User
 Request Body: None
 
 Response (200 OK):
-
-JSON
 {
   "message": "Account successfully deleted."
 }
