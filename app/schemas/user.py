@@ -71,7 +71,7 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     expires_in: int = 1800
-    user: LoginUserData
+    user: LoginUserData | None = None
 
 # 사용자 정보 수정 요청(PATCH /me) 시 클라이언트가 보낼 수정 데이터 규격 클래스 추가
 class UserUpdateReq(BaseModel):

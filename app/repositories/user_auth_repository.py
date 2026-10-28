@@ -1,3 +1,4 @@
+from typing import Optional
 # app/repositories/user_auth_repository.py
 # DB에서 이메일/전화번호로 유저를 찾고, 신규 유저를 생성하는 pure SQLAlchemy 쿼리 모듈 (비동기)
 
@@ -44,3 +45,12 @@ async def create_user(
     await db.commit()
     await db.refresh(new_user)
     return new_user
+
+
+class UserAuthRepository:
+    def __init__(self, db: AsyncSession):
+        self.db = db
+
+    async def get_by_id(self, user_id: int) -> Optional[User]:
+        """유저 ID로 사용자를 조회합니다."""
+        return await self.db.get(User, user_id)
