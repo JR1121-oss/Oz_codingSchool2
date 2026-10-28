@@ -1,6 +1,5 @@
 # 관리자(Admin) 전용 기능을 담당
 # 시스템에 등록된 전체 회원 목록을 조회 or 특정 회원의 권한(Role) or 부서(Department) 정보를 변경하는 API 엔드포인트를 제공
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
