@@ -21,4 +21,10 @@ envs/
 .env
 
 .python-version
+<<<<<<< HEAD
 .DS_Store
+=======
+
+.DS_Store
+**/.DS_Store
+>>>>>>> origin/feature/PatientAPI-JR

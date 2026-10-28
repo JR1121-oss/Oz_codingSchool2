@@ -41,15 +41,14 @@ async def register_user(db: AsyncSession, req: SignupRequest) -> User:
     )
 
 
-async def authenticate_user(db: AsyncSession, email: str, password: str) -> TokenResponse:
+async def authenticate_user(db: AsyncSession, req: LoginRequest) -> TokenResponse:
     """로그인 (REQ-USER-002) - Refresh Token 쿠키는 라우터에서 설정"""
     # 1. 이메일 조회 및 비밀번호 검증
-    user = await repo.find_user_by_email(db, email)
-    if not user or not verify_password(password, user.hashed_password):
+    user = await repo.find_user_by_email(db, req.email)
+    if not user or not verify_password(req.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="이메일 또는 비밀번호가 일치하지 않습니다.",
-            headers={"WWW-Authenticate": "Bearer"},   # OAuth2 규격 권장
         )
 
     # 2. 계정 활성화 여부 확인
