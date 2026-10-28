@@ -1,20 +1,20 @@
 # app/core/security.py
-import os
 from datetime import datetime, timedelta, timezone
 import jwt
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 from fastapi import Response
+from app.core.config import settings
 
 # 환경변수 설정
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "change-me-in-env")
+SECRET_KEY = settings.JWT_SECRET_KEY
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 REFRESH_TOKEN_EXPIRE_DAYS = 7
 REFRESH_COOKIE_NAME = "refresh_token"
 
 # 로컬 HTTP 개발 환경에서는 COOKIE_SECURE=false로 설정
-COOKIE_SECURE = os.getenv("COOKIE_SECURE", "true").lower() == "true"
+COOKIE_SECURE = settings.COOKIE_SECURE
 COOKIE_SAMESITE = "lax"
 
 _ph = PasswordHasher()

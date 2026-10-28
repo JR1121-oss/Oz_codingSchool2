@@ -1,16 +1,31 @@
 # app/schemas/user.py
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+import re
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from app.models.enum import DepartmentEnum, GenderEnum, RoleEnum
 
+PASSWORD_ERROR_MESSAGE = "비밀번호는 대소문자, 특수문자, 숫자를 각 1개씩 포함한 8자리 이상이어야 합니다."
 
 class SignupRequest(BaseModel):
     """회원가입 요청 본문 (REQ-USER-001)"""
     email: EmailStr
-    password: str = Field(..., min_length=8, max_length=64)
+    password: str = Field(..., max_length=64)
     name: str = Field(..., min_length=2, max_length=20)
     department: DepartmentEnum
     gender: GenderEnum
-    phone: str = Field(..., pattern=r"^\d{11}$")
+    phone_number: str = Field(..., pattern=r"^\d{11}$")
+
+    @field_validator("password")
+    @classmethod
+    def check_password(cls, value: str) -> str:
+        if (
+            len(value) < 8
+            or not re.search(r"[A-Z]", value)
+            or not re.search(r"[a-z]", value)
+            or not re.search(r"\d", value)
+            or not re.search(r"[^A-Za-z0-9]", value)
+        ):
+            raise ValueError(PASSWORD_ERROR_MESSAGE)
+        return value
 
 
 class UserSignupData(BaseModel):
@@ -22,7 +37,7 @@ class UserSignupData(BaseModel):
     name: str
     department: DepartmentEnum
     gender: GenderEnum
-    phone: str = Field(..., validation_alias="phone_number")
+    phone_number: str
     role: RoleEnum
 
 
@@ -30,12 +45,6 @@ class SignupResponse(BaseModel):
     """회원가입 응답 규격"""
     message: str = "회원가입이 완료되었습니다."
     user: UserSignupData
-
-
-class LoginRequest(BaseModel):
-    """로그인 요청 본문 (REQ-USER-002)"""
-    email: EmailStr
-    password: str
 
 
 class LoginUserData(BaseModel):
