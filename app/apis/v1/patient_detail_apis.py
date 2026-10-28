@@ -10,7 +10,7 @@ from app.schemas.patient import PatientUpdateRequest, PatientResponse
 router = APIRouter()
 
 
-# REQ-PATIENT-002: 환자 상세 정보 조회 API
+# REQ-PTNT-003: 환자 상세 정보 조회 API
 @router.get("/{patient_id}", response_model=PatientResponse)
 async def get_patient(
     patient_id: int, 
@@ -30,7 +30,7 @@ async def get_patient(
     return patient
 
 
-# REQ-PATIENT-003: 환자 정보 수정 API
+# REQ-PTNT-004: 환자 정보 수정 API
 @router.patch("/{patient_id}", response_model=PatientResponse)
 async def update_patient(
     patient_id: int, 
