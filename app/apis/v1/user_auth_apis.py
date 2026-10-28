@@ -8,7 +8,7 @@ from app.core.security import clear_refresh_cookie, create_access_token, decode_
 from app.models.user import User
 from app.schemas.user import TokenResponse
 
-router = APIRouter(prefix="/api/v1/users", tags=["Auth"])
+router = APIRouter()
 
 
 # B 파트: 액세스 토큰 재발급
