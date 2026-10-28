@@ -1,4 +1,4 @@
-# app/schemas/user.py
+# app/apis/v1/user.py
 from pydantic import BaseModel, ConfigDict
 
 from app.models.enum import DepartmentEnum, GenderEnum, RoleEnum
