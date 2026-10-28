@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
+from app.apis.practice_apis_jk import router as mypage_router
 from starlette.staticfiles import StaticFiles
 from starlette.responses import FileResponse
 
@@ -39,7 +40,7 @@ if not (BASE_DIR / "media").exists():
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 # 'media' 폴더를 '/media' 경로로 마운트 (사용자 업로드 파일 서빙용)
 app.mount("/media", StaticFiles(directory=BASE_DIR / "media"), name="media")
-
+app.include_router(mypage_router)
 
 @app.get(path="/healthcheck", status_code=200, include_in_schema=False)
 async def healthcheck():
@@ -59,7 +60,5 @@ async def catch_all(path: str):
         or path.startswith("static/")
         or path.startswith("media/")
     ):
-        from fastapi import HTTPException
-
         raise HTTPException(status_code=404)
     return FileResponse(BASE_DIR / "static" / "index.html")
