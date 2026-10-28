@@ -3,14 +3,14 @@ from collections.abc import Sequence
 from typing import Optional
 
 from sqlalchemy import or_, select
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.enum import DepartmentEnum, RoleEnum
 from app.models.user import User
 
 
-def find_users(
-    db: Session,
+async def find_users(
+    db: AsyncSession,
     search: Optional[str],
     department: Optional[DepartmentEnum],
 ) -> Sequence[User]:
@@ -28,15 +28,16 @@ def find_users(
     if department:
         stmt = stmt.where(User.department == department)
 
-    return db.execute(stmt).scalars().all()
+    result = await db.execute(stmt)
+    return result.scalars().all()
 
 
-def find_user_by_id(db: Session, user_id: int) -> Optional[User]:
-    return db.get(User, user_id)
+async def find_user_by_id(db: AsyncSession, user_id: int) -> Optional[User]:
+    return await db.get(User, user_id)
 
 
-def save_role(db: Session, user: User, role: RoleEnum) -> User:
+async def save_role(db: AsyncSession, user: User, role: RoleEnum) -> User:
     user.role = role
-    db.commit()
-    db.refresh(user)
+    await db.commit()
+    await db.refresh(user)
     return user
