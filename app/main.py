@@ -5,7 +5,14 @@ from app.apis.practice_apis_jk import router as mypage_router
 from starlette.staticfiles import StaticFiles
 from starlette.responses import FileResponse
 
-app = FastAPI()
+from fastapi import FastAPI
+from app.routers import auth, admin, users
+
+app = FastAPI(title="Chest X-Ray AI User Service")
+
+app.include_router(auth.router)
+app.include_router(admin.router)
+app.include_router(users.router)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
