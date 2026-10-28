@@ -11,8 +11,7 @@ from app.models.user import User
 from app.apis.v1.user import UserAdminResponse, RoleUpdateRequest, RoleUpdateResponse
 from app.apis.v1 import user_admin_service as service
 
-router = APIRouter(prefix="/api/v1/users", tags=["Admin"])
-
+router = APIRouter()
 
 # C 파트: 회원 목록 조회 (ADMIN 전용)
 @router.get("", response_model=List[UserAdminResponse])
