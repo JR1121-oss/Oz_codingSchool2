@@ -10,7 +10,7 @@ from starlette.responses import FileResponse
 from app.routers import auth, admin, users
 
 # 2. Patients v1 API 라우터 (apis/v1/ 폴더 내 파일들)
-from app.apis.v1 import router as patient_list_router
+from app.apis.v1.patient_list_apis import router as patient_list_router
 from app.apis.v1.patient_detail_apis import router as patient_detail_router
 from app.apis.v1.patient_delete_apis import router as patient_delete_router
 # from app.apis.practice_apis_jk import router as mypage_router - 재경님 코드와 맞춰 수정 필요
