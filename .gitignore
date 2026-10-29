@@ -21,3 +21,5 @@ envs/
 .env
 
 .python-version
+
+worker/models/*.pth
