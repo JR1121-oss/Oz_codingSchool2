@@ -1,4 +1,7 @@
-from fastapi import APIRouter, Depends, Response, status
+from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import ValidationError
+
+from fastapi import APIRouter, HTTPException, Depends, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db.databases import async_get_db
@@ -43,10 +46,20 @@ async def signup(
     summary="로그인 및 토큰 발급 (REQ-USER-002)",
 )
 async def login(
-    req: LoginRequest,
     response: Response,
+    form_data: OAuth2PasswordRequestForm = Depends(),  # Swagger Authorize·프론트 FormData 모두 form 형식
     db: AsyncSession = Depends(async_get_db),
 ):
+    # form의 username 칸에 이메일이 들어온다 → 기존 서비스가 쓰는 LoginRequest로 변환
+    try:
+        req = LoginRequest(email=form_data.username, password=form_data.password)
+    except ValidationError:
+        # 이메일 형식이 아니면 일반 로그인 실패와 같은 메시지로 응답
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="이메일 또는 비밀번호가 일치하지 않습니다.",
+        )
+    
     """
     이메일과 비밀번호를 검증하여 JWT Access Token 및 사용자 정보를 반환합니다.
     """
