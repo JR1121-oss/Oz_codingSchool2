@@ -64,7 +64,7 @@ async def login(
 )
 async def logout(
     response: Response,
-    current_user: User = Depends(get_current_user),
+    user_id: str = Depends(get_current_user), # 토큰만 확인 (DB 조회 없음)
 ):
     """
     현재 로그인된 사용자의 섹션을 종료합니다. (클라이언트 측 토큰 폐기 안내)

@@ -1,7 +1,5 @@
-from typing import Optional
 # app/repositories/user_auth_repository.py
-# DB에서 이메일/전화번호로 유저를 찾고, 신규 유저를 생성하는 pure SQLAlchemy 쿼리 모듈 (비동기)
-
+# 회원가입·로그인·토큰 재발급에 필요한 사용자 조회/생성 쿼리 모듈 (비동기)
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,7 +16,12 @@ async def find_user_by_email(db: AsyncSession, email: str) -> User | None:
 async def find_user_by_phone(db: AsyncSession, phone: str) -> User | None:
     """전화번호로 사용자 조회"""
     result = await db.execute(select(User).where(User.phone_number == phone))
-    return result.scalar_one_or_none() # 결과가 2개 이상이면 에러.
+    return result.scalar_one_or_none()
+
+
+async def find_user_by_id(db: AsyncSession, user_id: int) -> User | None:
+    """유저 ID로 사용자 조회 (토큰 재발급 시 사용)"""
+    return await db.get(User, user_id)
 
 
 async def create_user(
@@ -45,12 +48,3 @@ async def create_user(
     await db.commit()
     await db.refresh(new_user)
     return new_user
-
-
-class UserAuthRepository:
-    def __init__(self, db: AsyncSession):
-        self.db = db
-
-    async def get_by_id(self, user_id: int) -> Optional[User]:
-        """유저 ID로 사용자를 조회합니다."""
-        return await self.db.get(User, user_id)

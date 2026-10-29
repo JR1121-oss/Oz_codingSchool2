@@ -5,9 +5,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db.databases import async_get_db
-from app.core.deps import get_current_user  
+from app.core.deps import get_approved_user  
 # deps.py의 실제 함수명으로 (STAFF/ADMIN 통과, PENDING 403)
-# 토큰만 보고 통과시키므로 승인 대기 사용자도 환자 정보를 볼 수 있음
+
+from app.models.user import User
 from app.models.patient import Patient
 from app.schemas.patient import PatientUpdateRequest, PatientResponse
 
@@ -22,7 +23,11 @@ async def _get_patient_or_404(db: AsyncSession, patient_id: int) -> Patient:
 
 # REQ-PTNT-003: 환자 상세 조회
 @router.get("/{patient_id}", response_model=PatientResponse)
-async def get_patient(patient_id: int, db: AsyncSession = Depends(async_get_db)):
+async def get_patient(
+    patient_id: int, 
+    db: AsyncSession = Depends(async_get_db),
+    current_user: User = Depends(get_approved_user),
+):
     return await _get_patient_or_404(db, patient_id)
 
 
@@ -32,6 +37,7 @@ async def update_patient(
     patient_id: int,
     update_data: PatientUpdateRequest,
     db: AsyncSession = Depends(async_get_db),
+    current_user: User = Depends(get_approved_user),
 ):
     patient = await _get_patient_or_404(db, patient_id)
 

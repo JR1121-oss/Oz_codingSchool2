@@ -6,7 +6,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db.databases import async_get_db
-from app.core.deps import get_current_user
+from app.core.deps import get_approved_user
 from app.models.enum import RoleEnum
 from app.models.JR_xray_image import XrayImage
 from app.models.medical_record import MedicalRecord  
@@ -34,7 +34,7 @@ def _to_local_path(image_url: str) -> Path | None:
 async def delete_patient(
     patient_id: int,
     db: AsyncSession = Depends(async_get_db),
-    current_user: User = Depends(get_current_user),  # 로그인한 사용자만 삭제 가능
+    current_user: User = Depends(get_approved_user),  # 승인된 사용자만 삭제 가능
 ):
     # 1. 권한 확인: STAFF, ADMIN 만 허용하기
     if current_user.role not in (RoleEnum.STAFF, RoleEnum.ADMIN):

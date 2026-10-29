@@ -1,37 +1,25 @@
 # app/apis/v1/record_detail_apis.py
-from datetime import datetime
-
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db.databases import async_get_db
-from app.core.deps import get_current_user
+from app.core.deps import get_approved_user
 from app.models.enum import RoleEnum
 from app.models.JR_xray_image import XrayImage
 from app.models.medical_record import MedicalRecord
 from app.models.user import User
+from app.schemas.medical_record import MedicalRecordDetailResponse
 
 router = APIRouter()  # prefix 와 tags 는 main.py 가 붙여 준다
-
-
-class MedicalRecordDetailResponse(BaseModel):
-    """진료기록 상세 조회 응답 (REQ-MDR-003)"""
-
-    id: int                        # 진료 기록 ID
-    patient_id: int                # 환자 상세 페이지로 돌아갈 때 필요하면 사용 (프론트가 안 쓰면 삭제)
-    chart_number: str              # 차트 넘버
-    symptoms: str                  # 증상
-    xray_image_url: str | None     # 흉부 X-Ray 이미지 (이미지가 없으면 null)
-    created_at: datetime           # 생성일시
 
 
 @router.get("/{record_id}", response_model=MedicalRecordDetailResponse)
 async def get_record(
     record_id: int,
     db: AsyncSession = Depends(async_get_db),
-    current_user: User = Depends(get_current_user),  # 로그인한 사용자만 조회 가능
+    current_user: User = Depends(get_approved_user),  # 승인된 사용자만 조회 가능
 ):
     # 1. 권한 확인: STAFF, ADMIN 만 허용 (PENDING 은 접근 불가)
     if current_user.role not in (RoleEnum.STAFF, RoleEnum.ADMIN):

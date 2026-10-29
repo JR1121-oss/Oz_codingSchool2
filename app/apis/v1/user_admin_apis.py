@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db.databases import async_get_db
-from app.core.deps import get_current_admin
+from app.core.deps import get_admin_user # get_current_admin이라고 되어있어 deps 기준으로 수정
 from app.models.enum import DepartmentEnum as Department
 from app.models.user import User
 from app.schemas.user import UserAdminResponse, RoleUpdateRequest, RoleUpdateResponse
@@ -19,7 +19,7 @@ async def get_users(
     search: Optional[str] = Query(None, max_length=255),
     department: Optional[Department] = Query(None),
     db: AsyncSession = Depends(async_get_db),
-    admin: User = Depends(get_current_admin),
+    admin: User = Depends(get_admin_user),
 ):
     return await service.get_users(db, search, department)
 
@@ -30,6 +30,6 @@ async def update_user_role(
     user_id: int,
     payload: RoleUpdateRequest,
     db: AsyncSession = Depends(async_get_db),
-    admin: User = Depends(get_current_admin),
+    admin: User = Depends(get_admin_user),
 ):
     return await service.change_user_role(db, admin, user_id, payload.role)

@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db.databases import async_get_db
-from app.core.deps import get_current_user
+from app.core.deps import get_approved_user
 from app.models.enum import RoleEnum
 from app.models.user import User
 from app.schemas.user import UserSignupData  # 회원 정보 응답 DTO
@@ -14,7 +14,9 @@ router = APIRouter()
 
 
 # 관리자 권한 검증 전용 Dependency 함수
-async def verify_admin_role(current_user: User = Depends(get_current_user)) -> User:
+async def verify_admin_role(
+        current_user: User = Depends(get_approved_user)
+) -> User:
     """현재 로그인된 사용자가 ADMIN 권한을 가지고 있는지 검증합니다."""
     if current_user.role != RoleEnum.ADMIN:
         raise HTTPException(

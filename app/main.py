@@ -6,14 +6,17 @@ from fastapi import FastAPI, HTTPException
 from starlette.staticfiles import StaticFiles
 from starlette.responses import FileResponse
 
-# 1. Auth & User 라우터 (routers/ 폴더 내 파일들)
-from app.routers import auth, admin, users
+# 1. Auth & Admin 라우터 (routers/ 폴더)
+from app.routers import auth, admin
 
-# 2. Patients v1 API 라우터 (apis/v1/ 폴더 내 파일들)
+# 2. v1 API 라우터 (apis/v1/ 폴더)
+from app.apis.v1.user_me_apis import router as user_me_router
 from app.apis.v1.patient_list_apis import router as patient_list_router
 from app.apis.v1.patient_detail_apis import router as patient_detail_router
 from app.apis.v1.patient_delete_apis import router as patient_delete_router
-# from app.apis.practice_apis_jk import router as mypage_router - 재경님 코드와 맞춰 수정 필요
+from app.apis.v1.record_detail_apis import router as record_detail_router
+# TODO: record_list_apis.py가 DB 연동 버전으로 바뀌면 주석 해제 (현재 메모리 리스트 버전이라 import 불가)
+# from app.apis.v1.record_list_apis import router as record_list_router
 
 app = FastAPI(title="Chest X-Ray AI User Service")
 
@@ -25,7 +28,7 @@ app = FastAPI(title="Chest X-Ray AI User Service")
 
 # Auth & User
 app.include_router(auth.router, prefix="/api/v1/users", tags=["Auth"])
-app.include_router(users.router, prefix="/api/v1/users", tags=["Users"])
+app.include_router(user_me_router, prefix="/api/v1/users", tags=["Users"])
 app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"])
 
 # Patients
@@ -33,9 +36,11 @@ app.include_router(patient_list_router, prefix="/api/v1/patients", tags=["Patien
 app.include_router(patient_detail_router, prefix="/api/v1/patients", tags=["Patients"])
 app.include_router(patient_delete_router, prefix="/api/v1/patients", tags=["Patients"])
 
-# Practice (practice_apis_jk.py 안의 APIRouter에 prefix가 있으면 여기서는 붙이지 않는다)
-# app.include_router(practice_router, tags=["Practice"])
-# 여기도 수정 필요
+# Medical Records
+# TODO: record_list_apis.py가 DB 연동 버전으로 바뀌면 주석 해제 (현재 메모리 리스트 버전이라 import 불가)
+# app.include_router(record_list_router, prefix="/api/v1/patients", tags=["Medical Records"])
+app.include_router(record_detail_router, prefix="/api/v1/medical-records", tags=["Medical Records"])
+
 
 # ----------------------------------------------------------------
 # app/main.py 위치 기준 parent.parent는 프로젝트 최상위 루트 디렉토리입니다.

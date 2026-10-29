@@ -75,10 +75,31 @@ class TokenResponse(BaseModel):
 
 # 사용자 정보 수정 요청(PATCH /me) 시 클라이언트가 보낼 수정 데이터 규격 클래스 추가
 class UserUpdateReq(BaseModel):
-    """현재 로그인된 사용자 정보 수정 요청 본문 (REQ-USER-004)"""
-    name: str | None = Field(None, min_length=2, max_length=20)
+    """내 정보 수정 요청 (REQ-USER-007) - 프론트 마이페이지는 부서·전화번호만 수정"""
+    department: DepartmentEnum | None = None
     phone_number: str | None = Field(None, pattern=r"^\d{11}$")
-    # 프론트 마이페이지는 부서와 전화번호만 수정함 (비밀번호는 별도 API)
+
+
+PASSWORD_RULE_MESSAGE = "비밀번호는 대소문자, 특수문자, 숫자를 각 1개씩 포함한 8자리 이상이어야 합니다."
+
+
+class PasswordUpdateReq(BaseModel):
+    """비밀번호 변경 요청 (REQ-USER-008) - 프론트가 current_password/new_password로 보냄"""
+    current_password: str
+    new_password: str
+
+    @field_validator("new_password")
+    @classmethod
+    def check_password_rule(cls, value: str) -> str:
+        if not (
+            len(value) >= 8
+            and re.search(r"[A-Z]", value)
+            and re.search(r"[a-z]", value)
+            and re.search(r"\d", value)
+            and re.search(r"[^A-Za-z0-9\s]", value)
+        ):
+            raise ValueError(PASSWORD_RULE_MESSAGE)
+        return value
 
 
 # ---------- 관리자 API (REQ-USER-004, 005) ----------

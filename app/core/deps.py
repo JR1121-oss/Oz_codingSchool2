@@ -85,3 +85,18 @@ async def get_admin_user(user: User = Depends(get_approved_user)) -> User:
             detail="관리자 권한이 필요합니다.",
         )
     return user
+
+async def get_current_active_user(
+    user_id: str = Depends(get_current_user),
+    db: AsyncSession = Depends(async_get_db),
+) -> User:
+    """토큰의 사용자를 DB에서 조회 (승인 여부는 보지 않음, PENDING도 통과)
+    - 마이페이지(/users/me)처럼 승인 대기 사용자도 접근해야 하는 API에서 사용
+    """
+    user = await db.get(User, int(user_id))
+    if user is None or not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="유효하지 않은 사용자입니다.",
+        )
+    return user
