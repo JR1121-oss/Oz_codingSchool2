@@ -20,7 +20,7 @@ app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 # 'media' 폴더를 '/media' 경로로 마운트 (사용자 업로드 파일 서빙용)
 app.mount("/media", StaticFiles(directory=BASE_DIR / "media"), name="media")
 app.include_router(mypage_router)
-
+app.include_router(record_detail_apis.router, prefix="/api/v1", tags=["Medical Records"])
 @app.get(path="/healthcheck", status_code=200, include_in_schema=False)
 async def healthcheck():
     return {"status": "ok"}
