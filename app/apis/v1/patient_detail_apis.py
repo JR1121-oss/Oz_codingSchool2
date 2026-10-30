@@ -1,54 +1,35 @@
 # app/apis/v1/patient_detail_apis.py
-from datetime import datetime
-
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db.databases import async_get_db
-from app.core.deps import get_approved_user  
-# deps.py의 실제 함수명으로 (STAFF/ADMIN 통과, PENDING 403)
-
+from app.core.deps import get_approved_user, get_medical_user
 from app.models.user import User
-from app.models.patient import Patient
-from app.schemas.patient import PatientUpdateRequest, PatientResponse
+from app.schemas.patient import PatientResponse, PatientUpdateRequest
+from app.services import patient_service as service
 
+# prefix는 main.py에서 "/api/v1/patients"로 지정하므로 여기서는 비워둔다.
 router = APIRouter()
 
-async def _get_patient_or_404(db: AsyncSession, patient_id: int) -> Patient:
-    patient = await db.get(Patient, patient_id)
-    if patient is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="환자를 찾을 수 없습니다.")
-    return patient
 
-
-# REQ-PTNT-003: 환자 상세 조회
+# REQ-PTNT-003: 환자 상세 정보 조회 API / 권한: 승인된 사용자 (PENDING은 403)
 @router.get("/{patient_id}", response_model=PatientResponse)
 async def get_patient(
-    patient_id: int, 
+    patient_id: int,
     db: AsyncSession = Depends(async_get_db),
     current_user: User = Depends(get_approved_user),
 ):
-    return await _get_patient_or_404(db, patient_id)
+    """환자 PK(patient_id)로 상세 정보를 조회합니다."""
+    return await service.get_patient(db, patient_id)
 
 
-# REQ-PTNT-004: 환자 정보 수정 (이름, 연락처)
+# REQ-PTNT-004: 환자 정보 수정 API / 권한: 의료진 부서 + 승인된 사용자
 @router.patch("/{patient_id}", response_model=PatientResponse)
 async def update_patient(
     patient_id: int,
     update_data: PatientUpdateRequest,
     db: AsyncSession = Depends(async_get_db),
-    current_user: User = Depends(get_approved_user),
+    current_user: User = Depends(get_medical_user),
 ):
-    patient = await _get_patient_or_404(db, patient_id)
-
-    changes = update_data.model_dump(exclude_unset=True)
-    if not changes:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="수정할 항목을 하나 이상 입력해야 합니다.")
-
-    for field, value in changes.items():
-        setattr(patient, field, value)  # 스키마 필드명과 모델 속성명(phone vs phone_number)이 같아야 함
-    patient.updated_at = datetime.now()
-
-    await db.commit()
-    await db.refresh(patient)
-    return patient
+    """환자의 이름·연락처를 선택적으로 수정합니다. (보낸 항목만)"""
+    return await service.update_patient(db, patient_id, update_data)
