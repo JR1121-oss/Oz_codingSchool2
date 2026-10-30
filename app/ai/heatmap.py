@@ -1,8 +1,9 @@
 # app/ai/heatmap.py
 """Grad-CAM 히트맵 생성. (선택 기능: 실패하면 호출하는 쪽(inference.py)에서 None으로 처리한다)
 
-추가 라이브러리 없이 torch, numpy, PIL만 쓴다. (numpy는 torchvision이 이미 필요로 한다)
+추가 라이브러리 없이 torch, numpy, PIL만 쓴다.
 inference.py와 서로 import하면 순환이 생겨서, 모델과 입력 텐서는 인자로 받는다.
+앙상블 3개 중 ResNet50 하나로만 히트맵을 만든다. (inference.py가 resnet50을 넘긴다)
 """
 import uuid
 from pathlib import Path
@@ -13,9 +14,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from PIL import Image
 
-# [논의 9] 앙상블 3개 중 ResNet50 하나로만 히트맵을 만든다. (inference.py가 resnet50을 넘긴다)
-#          그래서 히트맵은 "최종 판정 전체"가 아니라 "ResNet50이 본 영역"이다.
-#          의료진이 오해하지 않게 화면 문구를 어떻게 할지, 이 선택이 괜찮은지 논의 필요.
 # 원본 X-ray는 수천 px일 수 있어서 긴 변을 줄여 저장한다. (속도와 파일 크기 때문)
 MAX_SIDE = 512
 
@@ -56,11 +54,7 @@ def save_heatmap(model: nn.Module, x: torch.Tensor, img: Image.Image, media_dir:
     """히트맵을 원본 위에 겹쳐 PNG로 저장하고, media 기준 상대경로를 반환한다.
 
     반환 예: "heatmaps/3f2a9c1e....png"  ->  inference.py가 "/media/" + 반환값으로 URL을 만든다.
-
-    [논의 12] 파일을 먼저 저장하고 DB 저장은 서비스가 나중에 한다. 같은 요청이 동시에 두 번 오면
-              한쪽 결과가 DB에 못 들어가고(IntegrityError) 이 파일만 남는다.
-              또 DB 저장이 실패해도 파일이 남는다. 몇 장 안 되면 무시해도 되지만,
-              쌓이는 게 걱정되면 주기적 정리(예: DB에 없는 heatmaps 파일 삭제)를 팀에서 정해야 한다.
+    파일을 먼저 저장하고 DB 저장은 서비스가 나중에 하므로, DB 저장이 실패하면 파일만 남을 수 있다.
     """
     cam = _grad_cam(model, x)
 
