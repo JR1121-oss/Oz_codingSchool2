@@ -1,3 +1,4 @@
+# app/main.py
 # FastAPI 프로젝트의 '중앙 통제실'이자 '진입점(Entry Point)' 역할을 하는 파일
 import os
 from pathlib import Path
@@ -14,9 +15,9 @@ from app.apis.v1.user_me_apis import router as user_me_router
 from app.apis.v1.patient_list_apis import router as patient_list_router
 from app.apis.v1.patient_detail_apis import router as patient_detail_router
 from app.apis.v1.patient_delete_apis import router as patient_delete_router
-from app.apis.v1.record_detail_apis import router as record_detail_router
-# TODO: record_list_apis.py가 DB 연동 버전으로 바뀌면 주석 해제 (현재 메모리 리스트 버전이라 import 불가)
-# from app.apis.v1.record_list_apis import router as record_list_router
+from app.apis.v1.medical_record_detail_apis import router as record_detail_router
+from app.apis.v1.medical_record_list_apis import router as record_list_router
+from app.apis.v1.medical_record_list_apis import patient_records_router
 
 app = FastAPI(title="Chest X-Ray AI User Service")
 
@@ -37,9 +38,9 @@ app.include_router(patient_detail_router, prefix="/api/v1/patients", tags=["Pati
 app.include_router(patient_delete_router, prefix="/api/v1/patients", tags=["Patients"])
 
 # Medical Records
-# TODO: record_list_apis.py가 DB 연동 버전으로 바뀌면 주석 해제 (현재 메모리 리스트 버전이라 import 불가)
-# app.include_router(record_list_router, prefix="/api/v1/patients", tags=["Medical Records"])
 app.include_router(record_detail_router, prefix="/api/v1/medical-records", tags=["Medical Records"])
+app.include_router(record_list_router, prefix="/api/v1/medical-records", tags=["Medical Records"])
+app.include_router(patient_records_router, prefix="/api/v1/patients", tags=["Medical Records"])
 
 
 # ----------------------------------------------------------------
