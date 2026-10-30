@@ -14,7 +14,7 @@ class Patient(Base):
     # 공통 Enum 적용
     gender: Mapped[GenderEnum] = mapped_column(nullable=False, comment="환자 성별")
 
-    phone: Mapped[str] = mapped_column(String(11), nullable=False, comment="환자 연락처, 국내 전화번호로 한정")
+    phone_number: Mapped[str] = mapped_column("phone", String(11), nullable=False, comment="환자 연락처, 국내 전화번호로 한정")
 
     created_at: Mapped[DateTime] = mapped_column(
         DateTime,

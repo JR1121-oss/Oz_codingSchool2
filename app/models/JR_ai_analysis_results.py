@@ -1,6 +1,6 @@
 from datetime import datetime
 from sqlalchemy import BigInteger, Boolean, Numeric, String, DateTime, ForeignKey, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.db.databases import Base
 
 class AiAnalysisResult(Base):
@@ -45,4 +45,8 @@ class AiAnalysisResult(Base):
         nullable=True,
         onupdate=func.now(),
         comment="수정 일시"
+    )
+    medical_record = relationship(
+        "MedicalRecord", 
+        back_populates="ai_analysis_results"
     )
