@@ -1,11 +1,14 @@
 # 관리자(Admin) 전용 기능을 담당
 # 시스템에 등록된 전체 회원 목록을 조회 or 특정 회원의 권한(Role) or 부서(Department) 정보를 변경하는 API 엔드포인트를 제공
+from typing import Optional
+from fastapi import Query
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db.databases import async_get_db
 from app.core.deps import get_approved_user
-from app.models.enum import RoleEnum
+from app.models.enum import RoleEnum, DepartmentEnum
 from app.models.user import User
 from app.schemas.user import UserSignupData  # 회원 정보 응답 DTO
 from app.services import user_admin_service
@@ -32,6 +35,8 @@ async def verify_admin_role(
     summary="[관리자] 전체 회원 목록 조회",
 )
 async def get_all_users(
+    query: Optional[str] = Query(default=None, description="이름 또는 이메일 검색"),
+    department: Optional[DepartmentEnum] = Query(default=None, description="부서 필터"),
     admin_user: User = Depends(verify_admin_role),
     db: AsyncSession = Depends(async_get_db),
 ):
@@ -39,7 +44,7 @@ async def get_all_users(
     관리자 권한을 가진 사용자만 접근 가능하며,
     전체 회원 목록을 조회하여 반환합니다.
     """
-    users = await user_admin_service.get_user_list(db=db)
+    users = await user_admin_service.get_users(db=db)
     return users
 
 
@@ -58,6 +63,9 @@ async def update_user_role(
     특정 회원의 권한(예: USER -> ADMIN)을 변경합니다.
     """
     updated_user = await user_admin_service.change_user_role(
-        db=db, target_user_id=user_id, new_role=new_role
+        db=db,
+        admin=admin_user,
+        user_id=user_id,
+        role=new_role,
     )
     return updated_user

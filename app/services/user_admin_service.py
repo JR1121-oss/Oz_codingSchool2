@@ -12,8 +12,8 @@ from app.repositories import user_admin_repository as repo
 
 async def get_users(
     db: AsyncSession,
-    search: Optional[str],
-    department: Optional[DepartmentEnum],
+    search: Optional[str] = None,
+    department: Optional[DepartmentEnum] = None,
 ) -> Sequence[User]:
     return await repo.find_users(db, search, department)
 
