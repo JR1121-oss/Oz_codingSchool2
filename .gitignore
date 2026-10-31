@@ -28,3 +28,5 @@ envs/
 .DS_Store
 **/.DS_Store
 >>>>>>> origin/feature/PatientAPI-JR
+eval_logs/
+media/
