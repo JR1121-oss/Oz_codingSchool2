@@ -31,9 +31,6 @@ class PredictionItem(BaseModel):
     ai_model: str                  # 사용한 모델
 
 
-class PredictionListResponse(BaseModel):
-    """GET /{record_id}/predictions 응답 (REQ-PRED-002)"""
-
-    record_id: int
-    xray_image_url: str | None     # 해당 진료기록의 흉부 X-Ray 이미지 (없으면 null)
-    items: list[PredictionItem]    # 예측 결과가 없으면 빈 배열
+# [삭제] PredictionListResponse
+#   목록 API가 프론트에 맞춰 객체({record_id, xray_image_url, items}) 대신
+#   배열(list[PredictionItem])을 바로 돌려주게 바뀌어서 더 이상 쓰지 않는다.

@@ -8,17 +8,19 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.ai.inference import predict
-from app.core.config import settings
+# [수정] 모델 이름을 inference.py 의 MODEL_VERSION 하나로 통일 (논의 3 → (b) 채택)
+#        기존: settings.AI_MODEL_NAME 이 config.py 에 없어서 "pneumonia-model-v1" 로 저장되고,
+#              inference.py 는 "pneumonia-ensemble-v1" 을 뜻해서 이름이 두 개였다.
+# [수정] 손상된 이미지(ImageLoadError)는 명세서대로 "이미지 파일을 불러올 수 없습니다" 로 구분
+from app.ai.inference import MODEL_VERSION, ImageLoadError, predict
 from app.models.JR_ai_analysis_results import AiAnalysisResult
 from app.models.JR_xray_image import XrayImage
 from app.models.medical_record import MedicalRecord
-from app.schemas.prediction import PredictionItem, PredictionListResponse
 
 logger = logging.getLogger(__name__)
 
-# 사용할 모델 이름. config.py 에 AI_MODEL_NAME 이 없으면 기본값을 쓴다 (50자 이하).
-AI_MODEL_NAME: str = getattr(settings, "AI_MODEL_NAME", "pneumonia-model-v1")
+# 저장/재사용 기준이 되는 모델 이름 (50자 이하). 가중치·임계값·전처리가 바뀌면 inference.py 에서 올린다.
+AI_MODEL_NAME: str = MODEL_VERSION
 
 # 이 파일: <프로젝트 루트>/app/services/prediction_service.py
 # parents[0]=services, [1]=app, [2]=프로젝트 루트
@@ -88,6 +90,12 @@ async def get_or_create_prediction(
     # 4. AI 추론: CPU 연산이라 별도 스레드에서 실행해 서버가 멈추지 않게 한다
     try:
         output = await asyncio.to_thread(predict, image_path)
+    except ImageLoadError:
+        # [수정] 파일은 있는데 손상되어 열 수 없는 경우 (명세서 500: 이미지 파일을 불러올 수 없음)
+        logger.exception("X-ray 이미지 읽기 실패: record_id=%s", record_id)
+        raise HTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR, "X-ray 이미지 파일을 불러올 수 없습니다."
+        )
     except Exception:
         logger.exception("AI 예측 실패: record_id=%s", record_id)
         raise HTTPException(
@@ -119,17 +127,17 @@ async def get_or_create_prediction(
     return result, True
 
 
-async def list_predictions(db: AsyncSession, record_id: int) -> PredictionListResponse:
-    """진료기록의 예측 결과 전체를 최신순으로 돌려준다 (모델이 달라도 모두 포함)."""
+async def list_predictions(db: AsyncSession, record_id: int) -> list[AiAnalysisResult]:
+    """진료기록의 예측 결과 전체를 최신순 배열로 돌려준다 (모델이 달라도 모두 포함).
+ 
+    프론트(pages.js)가 배열을 기대하므로 감싸지 않고 목록만 반환한다.
+    X-ray 사진은 프론트가 진료기록 상세 조회(GET /medical-records/{id})에서 따로 받는다.
+    """
     await _ensure_record_exists(db, record_id)
-    xray_image_url = await _latest_xray_url(db, record_id)
-
+ 
     rows = await db.execute(
         select(AiAnalysisResult)
         .where(AiAnalysisResult.record_id == record_id)
         .order_by(AiAnalysisResult.created_at.desc(), AiAnalysisResult.id.desc())
     )
-    items = [PredictionItem.model_validate(r) for r in rows.scalars().all()]
-    return PredictionListResponse(
-        record_id=record_id, xray_image_url=xray_image_url, items=items
-    )
+    return list(rows.scalars().all())
