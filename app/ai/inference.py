@@ -29,8 +29,9 @@ logger = logging.getLogger(__name__)
 # ----------------------------------------------------------------------------
 # 설정
 # ----------------------------------------------------------------------------
-# .pth 파일은 용량 문제로 git에 올리지 않는다. (.gitignore: app/ai/models/*.pth)
-MODEL_DIR = Path(__file__).resolve().parent / "models"
+# .pth 파일은 용량 문제로 git에 올리지 않는다. (.gitignore: worker/models/*.pth)
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+MODEL_DIR = PROJECT_ROOT / "worker" / "models"
 
 MODEL_FILES = {
     "efficientnet_b0": "efficientnet_b0.pth",
@@ -53,7 +54,7 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 MODEL_VERSION = "pneumonia-ensemble-v1"
 
 # 프로젝트 루트/media. 서비스의 MEDIA_DIR과 같은 위치다.
-MEDIA_DIR = (Path(__file__).resolve().parents[2] / "media").resolve()
+MEDIA_DIR = (PROJECT_ROOT / "media").resolve()
 
 # [논의 1] "predicted": 판정한 쪽의 확신도 (API 설계 결정 2). 임계값이 0.3이라 폐렴 확률 35%도
 #          "폐렴 35%"로 보이는 어색함이 있다. "positive"(항상 폐렴 확률)로 바꾸면 해결되며 이 값만 바꾸면 된다.
@@ -158,6 +159,7 @@ def load_models() -> dict:
 def warmup() -> None:
     """[논의 4] 서버 시작 시 한 번 호출하면 첫 요청이 느리지 않다. 모델 파일이 없으면 여기서 바로 실패한다.
     서비스는 아직 부르지 않는다. main.py에 lifespan으로 추가해야 한다.
+    -> [응답] main.py에 lifespan 추가 완료
     """
     load_models()
 
