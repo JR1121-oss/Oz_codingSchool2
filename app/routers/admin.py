@@ -44,7 +44,14 @@ async def get_all_users(
     관리자 권한을 가진 사용자만 접근 가능하며,
     전체 회원 목록을 조회하여 반환합니다.
     """
-    users = await user_admin_service.get_users(db=db)
+    # users = await user_admin_service.get_users(db=db)
+    # -> 수정 전 코드 : 라우터가 query와 departement를 잘 받아놓고 서비스에 넘기지 않음.
+
+    users = await user_admin_service.get_users(
+        db=db,
+        search=query,          # 라우터는 query, 서비스는 search라 이름을 맞춰서 넘김
+        department=department,
+    )
     return users
 
 

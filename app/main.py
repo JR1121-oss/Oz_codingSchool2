@@ -1,7 +1,8 @@
 # app/main.py
 # FastAPI 프로젝트의 '중앙 통제실'이자 '진입점(Entry Point)' 역할을 하는 파일
-import os
+import os, asyncio, logging
 from pathlib import Path
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 from starlette.staticfiles import StaticFiles
@@ -18,8 +19,25 @@ from app.apis.v1.patient_delete_apis import router as patient_delete_router
 from app.apis.v1.medical_record_detail_apis import router as record_detail_router
 from app.apis.v1.medical_record_list_apis import router as record_list_router
 from app.apis.v1.medical_record_list_apis import patient_records_router
+from app.apis.v1.prediction_apis import router as prediction_router
 
-app = FastAPI(title="Chest X-Ray AI User Service")
+logger = logging.getLogger(__name__)
+
+
+# 서버가 켜질 때 AI 모델을 미리 불러온다 (첫 예측 요청이 느리지 않게)
+# 모델 파일(.pth)이 없어도 경고만 남기고 서버는 정상으로 켜진다
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        from app.ai.inference import warmup
+        await asyncio.to_thread(warmup)
+        logger.info("AI 모델 로드 완료")
+    except Exception:
+        logger.warning("AI 모델을 미리 불러오지 못했습니다. 첫 예측 요청 때 다시 시도합니다.", exc_info=True)
+    yield
+
+
+app = FastAPI(title="Chest X-Ray AI User Service", lifespan=lifespan)
 
 # ----------------------------------------------------------------
 # 라우터 등록
@@ -41,6 +59,9 @@ app.include_router(patient_delete_router, prefix="/api/v1/patients", tags=["Pati
 app.include_router(record_detail_router, prefix="/api/v1/medical-records", tags=["Medical Records"])
 app.include_router(record_list_router, prefix="/api/v1/medical-records", tags=["Medical Records"])
 app.include_router(patient_records_router, prefix="/api/v1/patients", tags=["Medical Records"])
+
+# AI Prediction
+app.include_router(prediction_router, prefix="/api/v1/medical-records", tags=["AI Prediction"])
 
 
 # ----------------------------------------------------------------

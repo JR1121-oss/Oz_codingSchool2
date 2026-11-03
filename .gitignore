@@ -21,10 +21,12 @@ envs/
 .env
 
 .python-version
-<<<<<<< HEAD
-.DS_Store
-=======
 
 .DS_Store
 **/.DS_Store
->>>>>>> origin/feature/PatientAPI-JR
+
+eval_logs/
+media/
+
+# AI Model Weights
+worker/models/*.pth
