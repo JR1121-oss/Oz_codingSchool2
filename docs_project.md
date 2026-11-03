@@ -298,4 +298,3 @@ uv run alembic downgrade -1
 ```
 
 > ⚠️ 새 모델을 추가했다면 `app/models/__init__.py`에 import해야 Alembic이 감지합니다.
-gi
