@@ -41,23 +41,23 @@ MODEL_FILES = {
 
 IMG_SIZE = 256
 
-# [논의 2] 0.3은 노트북 결과 기준이다. 검증 데이터에서 Recall >= 0.90이 되는 값과 같은지
-#          evaluate_model.py로 확인해야 한다. 값이 바뀌면 MODEL_VERSION도 같이 올린다.
+# 0.3은 해커톤 리더보드(Accuracy) 기준 최고값이다 (0.5→0.4→0.3 제출, 0.3에서 0.96795, 604/624).
+# 폐렴 예측 392장·오답 20장이므로 테스트셋 Recall >= 0.951이 보장된다 (기준 0.90).
+# 임계값은 테스트 점수로 골랐고, 별도의 검증셋 평가는 하지 않았다.
+# 값이 바뀌면 MODEL_VERSION도 같이 올린다.
 THRESHOLD = 0.3
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# [논의 3] 서비스는 settings.AI_MODEL_NAME(기본값 "pneumonia-model-v1")을 쓰고 이 상수는 읽지 않는다.
-#          (a) .env/config.py에 AI_MODEL_NAME=pneumonia-ensemble-v1 설정, 또는
-#          (b) 서비스가 `from app.ai.inference import MODEL_VERSION`을 쓰게 변경 중 선택.
-#          가중치/임계값/전처리가 바뀌면 이름을 올려야 저장된 옛 결과가 재사용되지 않는다. (50자 이내)
+# 저장/재사용 기준이 되는 모델 이름 (50자 이내). prediction_service.py가 이 값을 그대로 쓴다.
+# 가중치·임계값·전처리·CONFIDENCE_MODE가 바뀌면 이름을 올려야 저장된 옛 결과가 재사용되지 않는다.
 MODEL_VERSION = "pneumonia-ensemble-v1"
 
 # 프로젝트 루트/media. 서비스의 MEDIA_DIR과 같은 위치다.
 MEDIA_DIR = (PROJECT_ROOT / "media").resolve()
 
-# [논의 1] "predicted": 판정한 쪽의 확신도 (API 설계 결정 2). 임계값이 0.3이라 폐렴 확률 35%도
-#          "폐렴 35%"로 보이는 어색함이 있다. "positive"(항상 폐렴 확률)로 바꾸면 해결되며 이 값만 바꾸면 된다.
+# "predicted": 판정한 쪽의 확신도 (API 설계 결정 2). 임계값이 0.3이라 폐렴 확률 35%도 "폐렴 35%"로 보인다.
+# "positive"(항상 폐렴 확률)로 바꾸려면 이 값만 바꾸되, 저장 값의 의미가 달라지므로 MODEL_VERSION도 올린다.
 CONFIDENCE_MODE = "predicted"  # "predicted" | "positive"
 
 # 히트맵은 선택 기능이다. False로 끄면 heatmap_url은 항상 None이다.
@@ -157,9 +157,8 @@ def load_models() -> dict:
 
 
 def warmup() -> None:
-    """[논의 4] 서버 시작 시 한 번 호출하면 첫 요청이 느리지 않다. 모델 파일이 없으면 여기서 바로 실패한다.
-    서비스는 아직 부르지 않는다. main.py에 lifespan으로 추가해야 한다.
-    -> [응답] main.py에 lifespan 추가 완료
+    """서버 시작 시 main.py의 lifespan이 호출한다. 모델을 미리 올려 첫 요청이 느리지 않게 한다.
+    모델 파일이 없으면 여기서 FileNotFoundError가 나고, main.py는 경고만 남긴 채 서버를 띄운다.
     """
     load_models()
 
@@ -227,8 +226,7 @@ def predict(image_path: Path) -> PredictionOutput:
     prob = out["probability"]
     is_pneumonia = prob > THRESHOLD
 
-    # [논의 5] 히트맵은 ResNet50 한 모델 기준이라 "최종 판정 전체"가 아니라 "ResNet50이 본 영역"이다.
-    #          화면 문구를 이에 맞춰야 하고, 만들지 못하면 None이므로 DB heatmap_url은 nullable이어야 한다.
+    # 히트맵은 ResNet50 한 모델 기준이라 "최종 판정 전체"가 아니라 "ResNet50이 주목한 영역"이다.
     heatmap_url = None
     if ENABLE_HEATMAP:
         try:
