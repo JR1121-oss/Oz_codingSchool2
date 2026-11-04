@@ -40,6 +40,23 @@ const utils = {
             };
         });
     },
+    // 서버는 UTC를 시간대 표시 없이 보내므로 'Z'를 붙여 UTC로 읽게 한다
+    formatDate(value) {
+        if (!value) return '-';
+        const hasTimezone = /Z$|[+-]\d{2}:?\d{2}$/.test(value);
+        return new Date(hasTimezone ? value : value + 'Z').toLocaleString('ko-KR');
+    },
+
+    formatPhoneNumber(value) {
+        if (!value) return value;
+        const phoneNumber = value.replace(/[^\d]/g, '');
+        const phoneNumberLength = phoneNumber.length;
+        if (phoneNumberLength < 4) return phoneNumber;
+        if (phoneNumberLength < 8) {
+            return `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(3)}`;
+        }
+        return `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(3, 7)}-${phoneNumber.slice(7, 11)}`;
+    },
 
     formatPhoneNumber(value) {
         if (!value) return value;

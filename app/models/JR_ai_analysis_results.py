@@ -1,6 +1,7 @@
+# app/models/JR_ai_analysis_results.py
 from datetime import datetime
 from sqlalchemy import BigInteger, Boolean, Numeric, String, DateTime, ForeignKey, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.db.databases import Base
 
 class AiAnalysisResult(Base):
@@ -26,8 +27,9 @@ class AiAnalysisResult(Base):
     confidence: Mapped[float] = mapped_column(
         Numeric(5, 2), nullable=False, comment="AI 예측 신뢰도"
     )
+    # nullable=True 로 변경 / 비워도 된다는 의미
     heatmap_url: Mapped[str] = mapped_column(
-        String(255), nullable=False, comment="AI가 판별한 병변 표시 이미지 url"
+        String(255), nullable=True, comment="AI가 판별한 병변 표시 이미지 url"
     )
     ai_model: Mapped[str] = mapped_column(
         String(50), nullable=False, comment="AI 예측에 사용된 모델명 혹은 모델파일"
@@ -45,4 +47,8 @@ class AiAnalysisResult(Base):
         nullable=True,
         onupdate=func.now(),
         comment="수정 일시"
+    )
+    medical_record = relationship(
+        "MedicalRecord", 
+        back_populates="ai_analysis_results"
     )

@@ -1,6 +1,6 @@
 from datetime import datetime
 from sqlalchemy import BigInteger, Integer, String, DateTime, ForeignKey, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.db.databases import Base
 
 class XrayImage(Base):
@@ -41,4 +41,9 @@ class XrayImage(Base):
         nullable=False,
         server_default=func.now(),
         comment="X-ray 이미지 등록 일시"
+    )
+
+    medical_record = relationship(
+        "MedicalRecord", 
+        back_populates="xray_images"
     )

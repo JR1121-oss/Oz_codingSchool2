@@ -21,3 +21,12 @@ envs/
 .env
 
 .python-version
+
+.DS_Store
+**/.DS_Store
+
+eval_logs/
+media/
+
+# AI Model Weights
+worker/models/*.pth
