@@ -51,29 +51,6 @@ uv run alembic downgrade -1
 - FastAPI 기반 비동기 웹 프레임워크 환경 구축
 - SQLAlchemy 비동기 ORM(`asyncmy`) 및 Pydantic 설정
 
-### 6. API 및 AI 워커 코드 작성 후 Branch 전략을 통한 코드 병합
-- 도메인별 기능 구현 및 `integration-test` 브랜치로 통합
-- **[본인 담당] 진료기록(Medical Records) 상세 조회 API 구현**
-  - `GET /api/v1/medical-records/{record_id}` 엔드포인트 구현
-  - 환자 정보 및 AI 판독 결과 연동을 고려한 응답 데이터 매핑
-  - `app/routers/` 및 `app/schemas/` 모듈화 적용
-
-### 7. 아키텍처 설계 및 적용
-- 계층형 아키텍처(Layered Architecture) 적용: `routers` -> `services` -> `repositories` -> `models`
-- 비동기 세션(`AsyncSession`) 의존성 주입(`Depends`) 구조화
-
-### 8. 도커 인프라 관련 파일 작성
-- 팀 공통 로컬 개발용 `docker-compose.yml` 및 `Dockerfile` 구성
-- MySQL 8.0 컨테이너 환경 기반 DB 인프라 격리
-
-### 9. AWS 배포 (개념 정리 및 준비)
-- 클라우드 환경 배포를 위한 환경변수(`.env`) 분리 및 컨테이너 기반 실행 구조 점검
-
-### 10. QA 진행 및 로컬 통합 검증
-- **[본인 담당] 로컬 구동 환경 디버깅 및 Swagger UI 검증**
-  - 가상환경 의존성 패키지 동기화 및 윈도우 실행 환경 트러블슈팅
-  - Uvicorn 서버 구동 후 Swagger UI(`http://127.0.0.1:8000/docs`)를 통한 API 동작 확인
-  - JWT 인증 및 `GET /api/v1/medical-records/{record_id}` 정상 응답 검증 완료
 
 ---
 
