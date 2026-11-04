@@ -79,7 +79,6 @@ app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 # 'media' 폴더를 '/media' 경로로 마운트 (사용자 업로드 파일 서빙용)
 app.mount("/media", StaticFiles(directory=BASE_DIR / "media"), name="media")
 
-# 기본 라우트
 @app.get(path="/healthcheck", status_code=200, include_in_schema=False)
 async def healthcheck():
     return {"status": "ok"}
