@@ -1,5 +1,34 @@
 # AI Health Web Assignment
 
+흉부 X-Ray 이미지 기반의 폐렴 판독 모델을 활용한 **폐렴 환자 관리 백오피스**입니다.
+의료진이 환자와 진료기록을 관리하고, 업로드한 X-Ray 이미지로 AI 폐렴 예측 결과를 확인할 수 있습니다.
+
+## Project Overview
+
+### 1. 주요 기능
+- **회원 관리**: 회원가입, 로그인(JWT), 마이페이지, 관리자 권한 변경
+- **환자 관리**: 환자 등록, 목록 조회(이름 검색, 성별·나이 필터), 상세 조회, 수정, 삭제
+- **진료기록 관리**: X-Ray 이미지를 포함한 진료기록 등록, 목록·상세 조회
+- **AI 폐렴 예측**: ResNet50 · EfficientNet-B0 · ConvNeXt-Tiny 앙상블 모델로 폐렴 여부와 Confidence 예측
+
+### 2. 기술 스택
+- **Backend**: Python 3.13+, FastAPI, SQLAlchemy (async), Pydantic
+- **Database**: MySQL, Alembic
+- **AI**: PyTorch, torchvision
+- **Tools**: uv, Git & GitHub, Docker
+
+### 3. 실행 방법
+환경변수 파일을 만들고 값을 채운 뒤, 의존성 설치 → 마이그레이션 → 서버 실행 순서로 진행합니다.
+모델 가중치(`.pth`)는 `worker/models/`에 둡니다.
+```bash
+cp .env.example .env
+uv sync
+uv run alembic upgrade head
+uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+- 웹: `http://127.0.0.1:8000`
+- API 문서(Swagger): `http://127.0.0.1:8000/docs`
+
 ## Alembic Migration Guide
 
 이 프로젝트는 데이터베이스 마이그레이션을 위해 Alembic을 사용합니다.
@@ -21,41 +50,3 @@ uv run alembic upgrade head
 ```bash
 uv run alembic downgrade -1
 ```
-# 흉부 X-ray AI 분석 웹 서비스 프로젝트 (Chest X-Ray AI Service)
-
-본 문서는 팀 프로젝트 진행 과정과 세부 수행 작업 내역을 정리한 최종 보고서입니다.
-
----------------------------------------------------------------------------
-
-## 📌 프로젝트 진행 단계별 정리
-
-### -이재경- 
-
-### 1. Team Rule 정의
-- Git 커밋 컨벤션, 브랜치 네이밍 규칙, 일일 스크럼 및 코드 리뷰 원칙 수립
-- 담당 도메인별 R&R(역할 및 책임) 분배
-
-### 2. 사용자 요구사항 정의
-- 병원 의료진 및 관리자를 위한 핵심 기능 도출
-- 회원 인증, 환자 관리, X-ray 이미지 업로드 및 AI 판독 결과 조회, 진료기록 관리 요구사항 분석
-
-### 3. API 명세서 작성
-- RESTful 원칙에 기반한 엔드포인트 URI 및 HTTP 메서드 설계
-- Swagger(OpenAPI) 스키마를 고려한 Request/Response DTO 규격 정의
-
-### 4. Git & Github Branch 전략 구성
-- Git-Flow 변형 전략 적용 (`main` <- `integration-test` <- 개인 작업 브랜치)
-- Pull Request(PR) 기반의 코드 병합 및 충돌 방지 절차 수립
-
-### 5. 프로젝트 세팅
-- FastAPI 기반 비동기 웹 프레임워크 환경 구축
-- SQLAlchemy 비동기 ORM(`asyncmy`) 및 Pydantic 설정
-
-
----
-
-## 🛠️ 개발 참고: Alembic 마이그레이션 가이드
-
-### 1. 마이그레이션 파일 생성 (자동 생성)
-```bash
-uv run alembic revision --autogenerate -m "변경 내용 설명"
